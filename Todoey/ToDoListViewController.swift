@@ -1,11 +1,3 @@
-//
-//  ViewController.swift
-//  Todoey
-//
-//  Created by Philipp Muellauer on 02/12/2019.
-//  Copyright © 2019 App Brewery. All rights reserved.
-//
-
 import UIKit
 
 class ToDoListViewController: UITableViewController {
@@ -33,6 +25,13 @@ class ToDoListViewController: UITableViewController {
         
         return cell!
 
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        tableView.deselectRow(at: indexPath, animated: true)
+        tableView.cellForRow(at: indexPath)?.accessoryType = tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark ? .none : .checkmark
+       
     }
 
 }
