@@ -6,6 +6,15 @@ class ToDoListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let navigationBarAppearance = UINavigationBarAppearance()
+        
+        navigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white]
+        navigationBarAppearance.backgroundColor = .systemBlue
+        
+        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
+        
         // Do any additional setup after loading the view.
     }
 
