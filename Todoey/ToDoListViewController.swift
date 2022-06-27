@@ -2,10 +2,14 @@ import UIKit
 
 class ToDoListViewController: UITableViewController {
     
-    var listItemArray = ["ToDoItem1", "ToDoItem2", "ToDoItem3"]
+   
+    var listItemArray = [Item]()
+    var dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         let navigationBarAppearance = UINavigationBarAppearance()
         
@@ -15,7 +19,7 @@ class ToDoListViewController: UITableViewController {
         navigationController?.navigationBar.standardAppearance = navigationBarAppearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
-        // Do any additional setup after loading the view.
+        loadDataFromDB()
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -24,13 +28,16 @@ class ToDoListViewController: UITableViewController {
 
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
+        
+   
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoListItemCell")
+        
         var content = cell?.defaultContentConfiguration()
         
-        content?.text = listItemArray[indexPath.row]
-        
+        content?.text = listItemArray[indexPath.row].title
         cell?.contentConfiguration = content
+        
+        cell?.accessoryType = self.listItemArray[indexPath.row].checked ? .checkmark : .none
         
         return cell!
 
@@ -38,9 +45,13 @@ class ToDoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+  
+        self.listItemArray[indexPath.row].checked = !self.listItemArray[indexPath.row].checked
+        writeDataToDB(for: listItemArray)
+        
         tableView.deselectRow(at: indexPath, animated: true)
-        tableView.cellForRow(at: indexPath)?.accessoryType = tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark ? .none : .checkmark
-       
+        tableView.reloadRows(at: [indexPath], with: .none)
+        
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -55,10 +66,10 @@ class ToDoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) {
             action in
             
-            
             if let coelText = alert.textFields?[0].text {
-                self.listItemArray.append(coelText)
-                
+                self.listItemArray.append(Item(for: coelText))
+            
+                self.writeDataToDB(for: self.listItemArray)
                 self.tableView.reloadData()
             }
             
@@ -68,6 +79,37 @@ class ToDoListViewController: UITableViewController {
         
         present(alert, animated: true)
     }
+    
+    func writeDataToDB(for items: [Item]) {
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+          let encodedData = try encoder.encode(items)
+            try encodedData.write(to: dataFilePath!)
+        } catch {
+            print("Failure encoding error \(error)")
+        }
+        
+    }
+    
+    func loadDataFromDB() {
+        
+        
+        if let coelData = try? Data(contentsOf: dataFilePath!) {
+            
+            let decoder = PropertyListDecoder()
+            
+            do {
+                listItemArray = try decoder.decode([Item].self, from: coelData)
+            } catch {
+                print("Unable to load data \(error)")
+            }
+        
+        }
+    }
+    
+    
     
 }
 
