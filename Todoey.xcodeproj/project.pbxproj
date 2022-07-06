@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D5EF64D2286AE65400690D38 /* DataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D5EF64D0286AE65400690D38 /* DataModel.xcdatamodeld */; };
+		D5EF64D42875264100690D38 /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5EF64D32875264100690D38 /* CategoryViewController.swift */; };
 		EB2BE4FA239524DB00FB933B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2BE4F9239524DB00FB933B /* AppDelegate.swift */; };
 		EB2BE4FE239524DB00FB933B /* ToDoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2BE4FD239524DB00FB933B /* ToDoListViewController.swift */; };
 		EB2BE501239524DB00FB933B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EB2BE4FF239524DB00FB933B /* Main.storyboard */; };
@@ -17,6 +18,7 @@
 
 /* Begin PBXFileReference section */
 		D5EF64D1286AE65400690D38 /* Item.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Item.xcdatamodel; sourceTree = "<group>"; };
+		D5EF64D32875264100690D38 /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		EB2BE4F6239524DB00FB933B /* Todoey.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Todoey.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB2BE4F9239524DB00FB933B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EB2BE4FD239524DB00FB933B /* ToDoListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoListViewController.swift; sourceTree = "<group>"; };
@@ -66,6 +68,7 @@
 				D51E8C59286689900069417B /* Models */,
 				EB2BE4F9239524DB00FB933B /* AppDelegate.swift */,
 				EB2BE4FD239524DB00FB933B /* ToDoListViewController.swift */,
+				D5EF64D32875264100690D38 /* CategoryViewController.swift */,
 				D5EF64D0286AE65400690D38 /* DataModel.xcdatamodeld */,
 				EB2BE4FF239524DB00FB933B /* Main.storyboard */,
 				EB2BE502239524DC00FB933B /* Assets.xcassets */,
@@ -149,6 +152,7 @@
 				D5EF64D2286AE65400690D38 /* DataModel.xcdatamodeld in Sources */,
 				EB2BE4FE239524DB00FB933B /* ToDoListViewController.swift in Sources */,
 				EB2BE4FA239524DB00FB933B /* AppDelegate.swift in Sources */,
+				D5EF64D42875264100690D38 /* CategoryViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
