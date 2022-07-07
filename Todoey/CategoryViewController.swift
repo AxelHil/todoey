@@ -53,7 +53,38 @@ class CategoryViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    // MARK: - Add new category button
 
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        let alert = UIAlertController(title: "New Category", message: "Add new item", preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.placeholder = "Category"
+        }
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { action in
+            
+            if  alert.textFields![0].text != "" {
+                self.categoryItemListArray.append(alert.textFields![0].text!)
+                self.tableView.reloadData()
+            }
+            
+        }
+        
+        alert.addAction(action)
+        
+        self.present(alert, animated: true) {
+            alert.view.superview?.isUserInteractionEnabled = true
+            alert.view.superview?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.dismissOnTapOutside)))
+        }
+    }
+    
+    @objc func dismissOnTapOutside() {
+        self.dismiss(animated: true)
+       
+    }
+    
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

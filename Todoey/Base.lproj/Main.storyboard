@@ -58,6 +58,12 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="Todoey" id="j3b-kb-ud3">
                         <barButtonItem key="backBarButtonItem" title="Back" id="kbG-8S-A5G"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="KaM-Mk-syh">
+                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <connections>
+                                <action selector="addButtonPressed:" destination="955-Cv-fJ7" id="GKz-Dt-HOr"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <segue destination="wXW-63-fZm" kind="show" identifier="ToItems" id="h3j-9G-JXz"/>
