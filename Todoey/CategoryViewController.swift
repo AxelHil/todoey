@@ -7,10 +7,17 @@
 //
 
 import UIKit
+import CoreData
 
 class CategoryViewController: UITableViewController {
     
-    var categoryItemListArray = ["Shopping List", "Travel", "Race"]
+    var categoryItemListArray = [CategoryItem]()
+    
+    var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
+    var context: NSManagedObjectContext?
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +32,9 @@ class CategoryViewController: UITableViewController {
         navigationController?.navigationBar.standardAppearance = navigationBarAppearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
+        context = appDelegate.persistentContainer.viewContext
+        
+        loadDataFromDB()
        
     }
 
@@ -42,7 +52,7 @@ class CategoryViewController: UITableViewController {
         
         var content = cell.defaultContentConfiguration()
         
-        content.text = categoryItemListArray[indexPath.row]
+        content.text = categoryItemListArray[indexPath.row].title
         
         cell.contentConfiguration = content
 
@@ -65,8 +75,15 @@ class CategoryViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add Item", style: .default) { action in
             
-            if  alert.textFields![0].text != "" {
-                self.categoryItemListArray.append(alert.textFields![0].text!)
+            if alert.textFields![0].text != "" {
+                
+                let newCategoryItem = CategoryItem(context: self.context!)
+                
+                newCategoryItem.title = alert.textFields![0].text
+                
+                self.categoryItemListArray.append(newCategoryItem)
+                self.writeDataToDB()
+                
                 self.tableView.reloadData()
             }
             
@@ -84,6 +101,32 @@ class CategoryViewController: UITableViewController {
         self.dismiss(animated: true)
        
     }
+    
+    //MARK: - CRUD Database Setup
+    func writeDataToDB() {
+        if context!.hasChanges {
+            do {
+                try context!.save()
+            } catch {
+                print("Error to save data \(error)")
+            }
+                    
+        }
+    }
+    
+    func loadDataFromDB() {
+        let request: NSFetchRequest<CategoryItem> = CategoryItem.fetchRequest()
+        
+        do {
+            categoryItemListArray = try context!.fetch(request)
+            
+        } catch {
+            print("Error loading \(error)")
+        }
+        
+    }
+    
+    
     
     /*
     // Override to support conditional editing of the table view.
