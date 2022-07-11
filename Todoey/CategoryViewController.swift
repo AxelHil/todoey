@@ -74,10 +74,10 @@ class CategoryViewController: UITableViewController {
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
-        let alert = UIAlertController(title: "New Category", message: "Add new item", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add New Category", message: nil, preferredStyle: .alert)
         
         alert.addTextField { textField in
-            textField.placeholder = "Category"
+            textField.placeholder = "Category Item"
         }
         
         let action = UIAlertAction(title: "Add Item", style: .default) { action in
