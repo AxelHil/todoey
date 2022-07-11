@@ -13,11 +13,7 @@ class CategoryViewController: UITableViewController {
     
     var categoryItemListArray = [CategoryItem]()
     
-    var appDelegate = UIApplication.shared.delegate as! AppDelegate
-    
-    var context: NSManagedObjectContext?
-    
-    
+    var context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,8 +28,6 @@ class CategoryViewController: UITableViewController {
         navigationController?.navigationBar.standardAppearance = navigationBarAppearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
         
-        context = appDelegate.persistentContainer.viewContext
-        
         loadDataFromDB()
        
     }
@@ -45,7 +39,6 @@ class CategoryViewController: UITableViewController {
         return categoryItemListArray.count
     }
 
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryItemCell", for: indexPath)
@@ -59,8 +52,22 @@ class CategoryViewController: UITableViewController {
         return cell
     }
     
+    //MARK: - Segue setup
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+
+        performSegue(withIdentifier: "ToItems", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if let indexPath = tableView.indexPathForSelectedRow {
+            
+            let destinationVC = segue.destination as! ToDoListViewController
+            
+            destinationVC.selectedCategory = categoryItemListArray[indexPath.row]
+        }
+        
     }
     
     // MARK: - Add new category button
@@ -77,7 +84,7 @@ class CategoryViewController: UITableViewController {
             
             if alert.textFields![0].text != "" {
                 
-                let newCategoryItem = CategoryItem(context: self.context!)
+                let newCategoryItem = CategoryItem(context: self.context)
                 
                 newCategoryItem.title = alert.textFields![0].text
                 
@@ -102,11 +109,12 @@ class CategoryViewController: UITableViewController {
        
     }
     
+
     //MARK: - CRUD Database Setup
     func writeDataToDB() {
-        if context!.hasChanges {
+        if context.hasChanges {
             do {
-                try context!.save()
+                try context.save()
             } catch {
                 print("Error to save data \(error)")
             }
@@ -118,7 +126,7 @@ class CategoryViewController: UITableViewController {
         let request: NSFetchRequest<CategoryItem> = CategoryItem.fetchRequest()
         
         do {
-            categoryItemListArray = try context!.fetch(request)
+            categoryItemListArray = try context.fetch(request)
             
         } catch {
             print("Error loading \(error)")

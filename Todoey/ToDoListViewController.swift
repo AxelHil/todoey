@@ -9,17 +9,20 @@ class ToDoListViewController: UITableViewController {
     
 //    var dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
-    var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    var selectedCategory: CategoryItem? {
+        didSet{
+           loadDataFromDB()
+        }
+    }
     
-    var context: NSManagedObjectContext?
+    var context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
-
     override func viewDidLoad() {
-        super.viewDidLoad()
-       
-        context = appDelegate.persistentContainer.viewContext
-    
         
+       
+        super.viewDidLoad()
+        
+      
         //Navigation Bar setup
         let navigationBarAppearance = UINavigationBarAppearance()
         
@@ -28,8 +31,8 @@ class ToDoListViewController: UITableViewController {
         
         navigationController?.navigationBar.standardAppearance = navigationBarAppearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-        
-        loadDataFromDB()
+    
+       
     }
 
     //Table View and Cells render
@@ -84,10 +87,12 @@ class ToDoListViewController: UITableViewController {
             
             if let coelText = alert.textFields?[0].text {
                 
-                let newItem = Item(context: self.context!)
+                let newItem = Item(context: self.context)
+              
                 
                 newItem.title = coelText
                 newItem.checked = false
+                newItem.parentItem = self.selectedCategory
                 
                 self.listItemArray.append(newItem)
             
@@ -105,9 +110,9 @@ class ToDoListViewController: UITableViewController {
     //Create data in DB
     func writeDataToDB() {
         
-        if context!.hasChanges {
+        if context.hasChanges {
             do {
-                try context?.save()
+                try context.save()
             } catch {
                 let nsError = error as NSError
                 print(nsError)
@@ -118,12 +123,21 @@ class ToDoListViewController: UITableViewController {
     }
     
     //Load Data from DB
-    func loadDataFromDB(for request: NSFetchRequest<Item> = NSFetchRequest(entityName: "Item") ) {
-        
+    func loadDataFromDB(for request: NSFetchRequest<Item> = NSFetchRequest(entityName: "Item"), with predicate: NSPredicate? = nil) {
+       
         //        let request: NSFetchRequest<Item> = Item.fetchRequest()
-      
+        
+        let categoryPredicate = NSPredicate(format: "parentItem.title MATCHES[cd] %@", selectedCategory!.title!)
+        
+        if let coelPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, coelPredicate])
+        }
+        else {
+            request.predicate = categoryPredicate
+        }
+        
         do {
-            listItemArray = try context!.fetch(request)
+            listItemArray = try context.fetch(request)
             self.tableView.reloadData()
         } catch {
             print("Error fetching data with \(error)")
@@ -138,11 +152,11 @@ extension ToDoListViewController: UISearchBarDelegate {
         
         let request: NSFetchRequest<Item> = Item.fetchRequest()
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+       let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
-        loadDataFromDB(for: request)
+        loadDataFromDB(for: request, with: predicate)
         
         tableView.reloadData()
         
