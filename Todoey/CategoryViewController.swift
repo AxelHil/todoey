@@ -7,17 +7,20 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    var categoryItemListArray = [CategoryItem]()
+    let localRealm = try! Realm()
     
-    var context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var categories: Results<CategoryItem>?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        print("The date goes here \(Date())")
+       
         //Navigation bar appearance setup
         
         let navigationBarAppearance = UINavigationBarAppearance()
@@ -36,7 +39,7 @@ class CategoryViewController: UITableViewController {
    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
        
-        return categoryItemListArray.count
+        return categories?.count ?? 1
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -45,11 +48,33 @@ class CategoryViewController: UITableViewController {
         
         var content = cell.defaultContentConfiguration()
         
-        content.text = categoryItemListArray[indexPath.row].title
+        content.text = categories?[indexPath.row].title ?? "No Category Added Yet"
         
         cell.contentConfiguration = content
 
         return cell
+    }
+    
+    //MARK: - Table view swipe action
+    
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let contextAction = UIContextualAction(style: .destructive, title: "Delete") { action, sourceView, completionHandler in
+            
+            try! self.localRealm.write({
+                self.localRealm.delete(self.categories![indexPath.row].items)
+                self.localRealm.delete(self.categories![indexPath.row])
+                
+            })
+            
+            tableView.reloadData()
+            completionHandler(true)
+        }
+        
+        let swipeActionsConfiguration = UISwipeActionsConfiguration(actions: [contextAction])
+        
+        return swipeActionsConfiguration
+        
     }
     
     //MARK: - Segue setup
@@ -60,14 +85,14 @@ class CategoryViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
+
         if let indexPath = tableView.indexPathForSelectedRow {
-            
+
             let destinationVC = segue.destination as! ToDoListViewController
-            
-            destinationVC.selectedCategory = categoryItemListArray[indexPath.row]
+
+            destinationVC.selectedCategory = categories?[indexPath.row]
         }
-        
+
     }
     
     // MARK: - Add new category button
@@ -84,12 +109,11 @@ class CategoryViewController: UITableViewController {
             
             if alert.textFields![0].text != "" {
                 
-                let newCategoryItem = CategoryItem(context: self.context)
+                let newCategoryItem = CategoryItem()
                 
                 newCategoryItem.title = alert.textFields![0].text
                 
-                self.categoryItemListArray.append(newCategoryItem)
-                self.writeDataToDB()
+                self.writeDataToDB(newCategoryItem)
                 
                 self.tableView.reloadData()
             }
@@ -111,74 +135,15 @@ class CategoryViewController: UITableViewController {
     
 
     //MARK: - CRUD Database Setup
-    func writeDataToDB() {
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                print("Error to save data \(error)")
-            }
-                    
-        }
+    func writeDataToDB(_ category: CategoryItem) {
+        try! localRealm.write({
+            localRealm.add(category)
+        })
     }
     
     func loadDataFromDB() {
-        let request: NSFetchRequest<CategoryItem> = CategoryItem.fetchRequest()
-        
-        do {
-            categoryItemListArray = try context.fetch(request)
-            
-        } catch {
-            print("Error loading \(error)")
-        }
-        
+        categories = localRealm.objects(CategoryItem.self)
     }
     
     
-    
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }

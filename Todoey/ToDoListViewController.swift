@@ -1,28 +1,23 @@
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoListViewController: UITableViewController {
     
+    let localRealm = try! Realm()
     
-    
-    var listItemArray = [Item]()
-    
-//    var dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
+    var itemList: Results<Item>?
+
     var selectedCategory: CategoryItem? {
         didSet{
            loadDataFromDB()
         }
     }
     
-    var context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
     override func viewDidLoad() {
         
-       
+      
         super.viewDidLoad()
         
-      
         //Navigation Bar setup
         let navigationBarAppearance = UINavigationBarAppearance()
         
@@ -35,9 +30,10 @@ class ToDoListViewController: UITableViewController {
        
     }
 
-    //Table View and Cells render
+   //MARK: - Table View and Data Source
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return listItemArray.count
+        return itemList?.count ?? 1
     }
 
 
@@ -45,34 +41,64 @@ class ToDoListViewController: UITableViewController {
         
    
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoListItemCell")
-        
+
         var content = cell?.defaultContentConfiguration()
         
-        content?.text = listItemArray[indexPath.row].title
-        cell?.contentConfiguration = content
+        if let coelTitle = itemList?[indexPath.row].title {
+            
+            content?.text = coelTitle
+            
+            cell?.accessoryType = self.itemList![indexPath.row].checked ? .checkmark : .none
+        } else {
+            
+            content?.text = "No Items Added Yet"
+        }
         
-        cell?.accessoryType = self.listItemArray[indexPath.row].checked ? .checkmark : .none
+        cell?.contentConfiguration = content
         
         return cell!
 
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            
+        do {
+            try localRealm.write({
+                self.itemList![indexPath.row].checked = !self.itemList![indexPath.row].checked
+            })
+        } catch {
+            print("Error updating \(error)")
+        }
         
-  
-        self.listItemArray[indexPath.row].checked = !self.listItemArray[indexPath.row].checked
-        
-//        context?.delete(listItemArray[indexPath.row])
-//        self.listItemArray.remove(at: indexPath.row)
-       
-        writeDataToDB()
-        
+
         tableView.deselectRow(at: indexPath, animated: true)
         tableView.reloadRows(at: [indexPath], with: .none)
+
         
     }
+ 
+    //MARK: - Swipe action config
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let contextAction = UIContextualAction(style: .destructive, title: "Delete") { action, sourceView, completionHandler in
+            
+            try! self.localRealm.write({
+                self.localRealm.delete(self.itemList![indexPath.row])
+
+            })
+            
+            completionHandler(true)
+            self.tableView.reloadData()
+        }
+        
+        let swipeActionsConfiguration = UISwipeActionsConfiguration(actions: [contextAction])
+        
+        return swipeActionsConfiguration
+        
+    }
+    
    
-    //Add Task Button
+    //MARK: - Add item button
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         let alert = UIAlertController(title: "Add New Item", message: nil, preferredStyle: .alert)
@@ -85,18 +111,20 @@ class ToDoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) {
             action in
             
-            if let coelText = alert.textFields?[0].text {
+            if alert.textFields?[0].text != "" {
                 
-                let newItem = Item(context: self.context)
-              
+                let newItem = Item()
+                newItem.title = alert.textFields![0].text
+                newItem.date = (Date()).timeIntervalSince1970
+             
+                do {
+                    try self.localRealm.write({
+                        self.selectedCategory!.items.append(newItem)
+                    })
+                } catch {
+                    print(error)
+                }
                 
-                newItem.title = coelText
-                newItem.checked = false
-                newItem.parentItem = self.selectedCategory
-                
-                self.listItemArray.append(newItem)
-            
-                self.writeDataToDB()
                 self.tableView.reloadData()
             }
             
@@ -107,42 +135,11 @@ class ToDoListViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    //Create data in DB
-    func writeDataToDB() {
-        
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                let nsError = error as NSError
-                print(nsError)
-               
-            }
-        }
-
-    }
-    
     //Load Data from DB
-    func loadDataFromDB(for request: NSFetchRequest<Item> = NSFetchRequest(entityName: "Item"), with predicate: NSPredicate? = nil) {
-       
-        //        let request: NSFetchRequest<Item> = Item.fetchRequest()
+    func loadDataFromDB() {
         
-        let categoryPredicate = NSPredicate(format: "parentItem.title MATCHES[cd] %@", selectedCategory!.title!)
-        
-        if let coelPredicate = predicate {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, coelPredicate])
-        }
-        else {
-            request.predicate = categoryPredicate
-        }
-        
-        do {
-            listItemArray = try context.fetch(request)
-            self.tableView.reloadData()
-        } catch {
-            print("Error fetching data with \(error)")
-        }
-        
+        itemList = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+
     }
     
 }
@@ -150,14 +147,8 @@ class ToDoListViewController: UITableViewController {
 extension ToDoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        
-       let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        
-        loadDataFromDB(for: request, with: predicate)
-        
+        itemList = itemList!.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "date", ascending: false)
+    
         tableView.reloadData()
         
     }
@@ -165,13 +156,14 @@ extension ToDoListViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
         if searchBar.text?.count == 0 {
-            
+
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
-                
+
             }
-            
-            self.loadDataFromDB()
+
+            loadDataFromDB()
+            tableView.reloadData()
         }
     }
 }
