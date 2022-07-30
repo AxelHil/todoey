@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     let localRealm = try! Realm()
     
@@ -17,20 +17,9 @@ class CategoryViewController: UITableViewController {
     
     
     override func viewDidLoad() {
+        
         super.viewDidLoad()
-        
-        print("The date goes here \(Date())")
-       
-        //Navigation bar appearance setup
-        
-        let navigationBarAppearance = UINavigationBarAppearance()
-
-        navigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white]
-        navigationBarAppearance.backgroundColor = .systemBlue
-
-        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
-        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-        
+    
         loadDataFromDB()
        
     }
@@ -44,36 +33,15 @@ class CategoryViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        var content = cell.defaultContentConfiguration()
+        var content = cell.contentConfiguration as! UIListContentConfiguration
         
         content.text = categories?[indexPath.row].title ?? "No Category Added Yet"
         
         cell.contentConfiguration = content
-
+        
         return cell
-    }
-    
-    //MARK: - Table view swipe action
-    
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
-        let contextAction = UIContextualAction(style: .destructive, title: "Delete") { action, sourceView, completionHandler in
-            
-            try! self.localRealm.write({
-                self.localRealm.delete(self.categories![indexPath.row].items)
-                self.localRealm.delete(self.categories![indexPath.row])
-                
-            })
-            
-            tableView.reloadData()
-            completionHandler(true)
-        }
-        
-        let swipeActionsConfiguration = UISwipeActionsConfiguration(actions: [contextAction])
-        
-        return swipeActionsConfiguration
         
     }
     
@@ -145,5 +113,14 @@ class CategoryViewController: UITableViewController {
         categories = localRealm.objects(CategoryItem.self)
     }
     
+    override func destroy(at indexPath: IndexPath) {
+        
+        try! self.localRealm.write({
+            self.localRealm.delete(self.categories![indexPath.row].items)
+            self.localRealm.delete(self.categories![indexPath.row])
+            
+        })
+        
+    }
     
 }
