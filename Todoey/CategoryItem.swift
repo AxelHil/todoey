@@ -13,6 +13,10 @@ class CategoryItem: Object {
     
     @Persisted var title: String?
     
+    @Persisted var colour: String
+    
     @Persisted var items: List<Item>
-   
+        
 }
+
+

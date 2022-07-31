@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
     
@@ -41,6 +42,8 @@ class CategoryViewController: SwipeTableViewController {
         
         cell.contentConfiguration = content
         
+        cell.backgroundColor = UIColor(hexString: categories?[indexPath.row].colour ?? "0A84FF")
+    
         return cell
         
     }
@@ -79,7 +82,9 @@ class CategoryViewController: SwipeTableViewController {
                 
                 let newCategoryItem = CategoryItem()
                 
-                newCategoryItem.title = alert.textFields![0].text
+                newCategoryItem.title = alert.textFields?[0].text
+                
+                newCategoryItem.colour = UIColor.randomFlat().hexValue()
                 
                 self.writeDataToDB(newCategoryItem)
                 
