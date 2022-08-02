@@ -17,6 +17,8 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
         
         tableView.rowHeight = 80.0
         
+        tableView.separatorStyle = .none
+        
         //Navigation Bar Setup
         
         let navigationBarAppearance = UINavigationBarAppearance()
