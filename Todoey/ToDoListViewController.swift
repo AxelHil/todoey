@@ -7,7 +7,9 @@ class ToDoListViewController: SwipeTableViewController {
     let localRealm = try! Realm()
     
     var itemList: Results<Item>?
-
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var selectedCategory: CategoryItem? {
         didSet{
            loadDataFromDB()
@@ -18,6 +20,33 @@ class ToDoListViewController: SwipeTableViewController {
         
         super.viewDidLoad()
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        
+        if let coelColour = selectedCategory?.colour {
+           
+            let colour = UIColor(hexString: coelColour)
+            let contrastColour = ContrastColorOf(colour!, returnFlat: true)
+            
+            navigationItem.title = selectedCategory!.title
+        
+            navigationController?.navigationBar.tintColor = contrastColour
+            navigationItem.rightBarButtonItem?.tintColor = contrastColour
+           
+            let navigationBarAppearance = UINavigationBarAppearance()
+            
+            navigationBarAppearance.backgroundColor = colour
+            navigationBarAppearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: contrastColour]
+            
+            navigationController?.navigationBar.standardAppearance = navigationBarAppearance
+            navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
+            
+            searchBar.barTintColor = colour
+            searchBar.searchTextField.backgroundColor = .white
+                    
+        }
+      
     }
 
    //MARK: - Table View and Data Source
@@ -115,7 +144,15 @@ class ToDoListViewController: SwipeTableViewController {
         
         alert.addAction(action)
         
-        present(alert, animated: true)
+        self.present(alert, animated: true) {
+            alert.view.superview?.isUserInteractionEnabled = true
+            alert.view.superview?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.dismissOnTapOutside)))
+        }
+    }
+    
+    @objc func dismissOnTapOutside() {
+        self.dismiss(animated: true)
+       
     }
     
     //Load Data from DB

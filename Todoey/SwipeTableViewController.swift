@@ -19,17 +19,6 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
         
         tableView.separatorStyle = .none
         
-        //Navigation Bar Setup
-        
-        let navigationBarAppearance = UINavigationBarAppearance()
-
-        navigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white]
-        navigationBarAppearance.backgroundColor = .systemBlue
-
-        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
-        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
-        
-       
     }
 
    

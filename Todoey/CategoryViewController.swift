@@ -16,13 +16,29 @@ class CategoryViewController: SwipeTableViewController {
     
     var categories: Results<CategoryItem>?
     
-    
     override func viewDidLoad() {
         
         super.viewDidLoad()
     
         loadDataFromDB()
        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+
+        let colour = UIColor(hexString: "1D9BF6")
+        let contrastColour = ContrastColorOf(colour!, returnFlat: true)
+        
+        navigationItem.rightBarButtonItem?.tintColor = contrastColour
+       
+        let navigationBarAppearance = UINavigationBarAppearance()
+        
+        navigationBarAppearance.backgroundColor = colour
+        navigationBarAppearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: contrastColour]
+        
+        navigationController?.navigationBar.standardAppearance = navigationBarAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationBarAppearance
+        
     }
 
     // MARK: - Table view data source
@@ -36,13 +52,17 @@ class CategoryViewController: SwipeTableViewController {
         
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
+        let colour = UIColor(hexString: categories?[indexPath.row].colour ?? "0A84FF")
+        
         var content = cell.contentConfiguration as! UIListContentConfiguration
         
         content.text = categories?[indexPath.row].title ?? "No Category Added Yet"
         
+        content.textProperties.color =  ContrastColorOf(colour!, returnFlat: true)
+        
         cell.contentConfiguration = content
         
-        cell.backgroundColor = UIColor(hexString: categories?[indexPath.row].colour ?? "0A84FF")
+        cell.backgroundColor = colour
     
         return cell
         
@@ -51,7 +71,7 @@ class CategoryViewController: SwipeTableViewController {
     //MARK: - Segue setup
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
+        
         performSegue(withIdentifier: "ToItems", sender: self)
     }
     
